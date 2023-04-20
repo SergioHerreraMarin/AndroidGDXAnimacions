@@ -34,11 +34,14 @@ public class Game extends ApplicationAdapter {
 	private float playerPosX;
 	private float playerPosY;
 	private Rectangle reclangleUp, rectangleDown, rectangleLeft, rectangleRight;
-	private float playerSpeed = 180;
+	private float playerSpeed = 220;
 	private Vector3 playerPos;
-	
+	private Vector3 playerDirectionLeft, playerDirectionRight, playerDirectionUp, playerDirectionDown, playerIdle;
+	private int playerDirection;
+
 	@Override
 	public void create () {
+
 
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
@@ -79,16 +82,18 @@ public class Game extends ApplicationAdapter {
 		rectangleLeft = new Rectangle(0, 0, 800/3, 480);
 		rectangleRight = new Rectangle(800 *2/3, 0, 800/3, 480);
 
+		playerDirectionUp = new Vector3(0,1,0);
+		playerDirectionDown = new Vector3(0,-1,0);
+		playerDirectionRight = new Vector3(1,0,0);
+		playerDirectionLeft = new Vector3(-1,0,0);
+		playerIdle = new Vector3(0,0,0);
+		playerDirection = 1;
 
 	}
 
 
 	@Override
 	public void render () {
-		/*
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();*/
 
 		ScreenUtils.clear(0.447f, 0.533f, 0.569f, 1);
 		camera.update();
@@ -98,22 +103,23 @@ public class Game extends ApplicationAdapter {
 
 		// Get current frame of animation for the current stateTime
 		TextureRegion currentFrame = walkAnimation.getKeyFrame(stateTime, true);
-		spriteBatch.setProjectionMatrix(camera.combined);
-		spriteBatch.begin();
 
-		if(virtual_joystick_control().x >= 0){
-			spriteBatch.draw(currentFrame,  playerPos.x += virtual_joystick_control().x , playerPos.y += virtual_joystick_control().y, scaleFactor * currentFrame.getRegionWidth(), scaleFactor * currentFrame.getRegionHeight());
+		if(playerDirection == -1){
+			currentFrame.flip(true, false);
 		}else{
-			spriteBatch.draw(currentFrame,  playerPos.x += virtual_joystick_control().x , playerPos.y += virtual_joystick_control().y, (scaleFactor * currentFrame.getRegionWidth()) * -1.0f, scaleFactor * currentFrame.getRegionHeight());
+			currentFrame.flip(false, false);
 		}
 
-		//spriteBatch.draw(currentFrame,  playerPos.x += virtual_joystick_control().x , playerPos.y += virtual_joystick_control().y, scaleFactor * currentFrame.getRegionWidth(), scaleFactor * currentFrame.getRegionHeight()); // Draw current frame at (50, 50)
-		//spriteBatch.draw(currentFrame, 512 - (walkSheet.getWidth() / 2), 50);
+		spriteBatch.setProjectionMatrix(camera.combined);
+		spriteBatch.begin();
+		spriteBatch.draw(currentFrame,  playerPos.x += ((getPlayerDirection().x * playerSpeed) * Gdx.graphics.getDeltaTime()) , playerPos.y += ((getPlayerDirection().y * playerSpeed) * Gdx.graphics.getDeltaTime()), scaleFactor * currentFrame.getRegionWidth(), scaleFactor * currentFrame.getRegionHeight());
 		spriteBatch.end();
+
+		currentFrame.flip(currentFrame.isFlipX(), currentFrame.isFlipY());
 	}
 
 
-	private Vector3 virtual_joystick_control() {
+	private Vector3 getPlayerDirection() {
 		// iterar per multitouch
 		// cada "i" és un possible "touch" d'un dit a la pantalla
 		for(int i=0;i<10;i++)
@@ -123,19 +129,19 @@ public class Game extends ApplicationAdapter {
 				// traducció de coordenades reals (depen del dispositiu) a 800x480
 				camera.unproject(touchPos);
 				if (reclangleUp.contains(touchPos.x, touchPos.y)) {
-					return new Vector3(0,playerSpeed * Gdx.graphics.getDeltaTime(),0);
+					return playerDirectionUp;
 				} else if (rectangleDown.contains(touchPos.x, touchPos.y)) {
-					return new Vector3(0,(playerSpeed * -1) * Gdx.graphics.getDeltaTime(),0);
+					return playerDirectionDown;
 				} else if (rectangleLeft.contains(touchPos.x, touchPos.y)) {
-					return new Vector3((playerSpeed * -1) * Gdx.graphics.getDeltaTime(),0,0);
+					playerDirection = -1;
+					return playerDirectionLeft;
 				} else if (rectangleRight.contains(touchPos.x, touchPos.y)) {
-					return new Vector3(playerSpeed * Gdx.graphics.getDeltaTime(),0,0);
+					playerDirection = 1;
+					return playerDirectionRight;
 				}
 			}
-		return new Vector3(0,0,0);
+		return playerIdle;
 	}
-
-
 
 
 	@Override
