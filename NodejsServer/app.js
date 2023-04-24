@@ -2,7 +2,7 @@
 const webSockets = require('./appWS.js')
 
 var websocket = new webSockets()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 8888
 
 
 function appListen() {

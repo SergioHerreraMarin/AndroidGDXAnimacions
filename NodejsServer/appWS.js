@@ -5,8 +5,6 @@ const { v4: uuidv4 } = require('uuid')
 
 class Obj {
 
-
-
     init(port) {
         // Run WebSocket server
         this.websocketServer = new WebSocket.Server({ port: port })
@@ -47,6 +45,7 @@ class Obj {
 
     // Send clientsIds to everyone connected with websockets
     sendClients() {
+        console.log('Client connected');
         var clients = []
         this.socketsClients.forEach((value, key) => {
             clients.push(value.id)
@@ -84,40 +83,8 @@ class Obj {
 
     // A message is received from a websocket client, le pasa conexción del cliente, la id y el mensaje
     newMessage(ws, id, bufferedMessage) {
-        var messageAsString = bufferedMessage.toString()
-        var messageAsObject = {}
-
-        try { messageAsObject = JSON.parse(messageAsString) }
-        catch (e) { console.log("Could not parse bufferedMessage from WS message") }
-
-        switch (messageAsObject.type) {
-            case "bounce":
-                var JSonToSendClient = { type: "bounce", message: messageAsObject.message }
-                ws.send(JSON.stringify(JSonToSendClient))
-                break;
-            case "broadcast":
-                var JSonToSendClient = { type: "broadcast", origin: id, message: messageAsObject.message }
-                this.broadcast(JSonToSendClient)
-                break;
-            case "private":
-                var JSonToSendClient = { type: "private", origin: id, destination: messageAsObject.destination, message: messageAsObject.message }
-                this.private(JSonToSendClient)
-                break;
-
-            case "playerDirection":
-
-                if (messageAsObject.typePlayer == "Left") {
-                    this.currentPlayerDirectionLeft = messageAsObject.direction;
-                } else {
-                    this.currentPlayerDirectionRight = messageAsObject.direction;
-                }
-
-
-
-                break;
-
-
-        }
+        var message = bufferedMessage.toString()
+        console.log(message);
     }
 }
 

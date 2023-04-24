@@ -1,5 +1,6 @@
 package com.animacionsgdx.game;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -12,6 +13,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.github.czyzby.websocket.WebSocket;
+import com.github.czyzby.websocket.WebSocketListener;
+import com.github.czyzby.websocket.WebSockets;
 
 public class Game extends ApplicationAdapter {
 	SpriteBatch batch;
@@ -38,6 +42,13 @@ public class Game extends ApplicationAdapter {
 	private Vector3 playerPos;
 	private Vector3 playerDirectionLeft, playerDirectionRight, playerDirectionUp, playerDirectionDown, playerIdle;
 	private int playerDirection;
+
+	//Websocket
+	WebSocket socket;
+	String address = "localhost";
+	int port = 8888;
+
+	float lastSend = 0;
 
 	@Override
 	public void create () {
@@ -89,6 +100,17 @@ public class Game extends ApplicationAdapter {
 		playerIdle = new Vector3(0,0,0);
 		playerDirection = 1;
 
+
+		//Websocket
+		if( Gdx.app.getType()== Application.ApplicationType.Android ) {
+			// en Android el host és accessible per 10.0.2.2
+			address = "10.0.2.2";
+			socket = WebSockets.newSocket(WebSockets.toWebSocketUrl(address, port));
+			socket.setSendGracefully(false);
+			socket.addListener((WebSocketListener) new MyWSListener());
+			socket.connect();
+			socket.send("Hola");
+		}
 	}
 
 
@@ -116,6 +138,12 @@ public class Game extends ApplicationAdapter {
 		spriteBatch.end();
 
 		currentFrame.flip(currentFrame.isFlipX(), currentFrame.isFlipY());
+
+		if( stateTime-lastSend > 1.0f ) {
+			lastSend = stateTime;
+			socket.send("Player position: X=" + playerPos.x  + ", Y=" + playerPos.y);
+		}
+
 	}
 
 
@@ -148,5 +176,39 @@ public class Game extends ApplicationAdapter {
 	public void dispose () { // SpriteBatches and Textures must always be disposed
 		spriteBatch.dispose();
 		walkSheet.dispose();
+	}
+}
+
+
+class MyWSListener implements WebSocketListener {
+
+	@Override
+	public boolean onOpen(WebSocket webSocket) {
+		System.out.println("Opening...");
+		return false;
+	}
+
+	@Override
+	public boolean onClose(WebSocket webSocket, int closeCode, String reason) {
+		System.out.println("Closing...");
+		return false;
+	}
+
+	@Override
+	public boolean onMessage(WebSocket webSocket, String packet) {
+		System.out.println("Message:");
+		return false;
+	}
+
+	@Override
+	public boolean onMessage(WebSocket webSocket, byte[] packet) {
+		System.out.println("Message:");
+		return false;
+	}
+
+	@Override
+	public boolean onError(WebSocket webSocket, Throwable error) {
+		System.out.println("ERROR:"+error.toString());
+		return false;
 	}
 }

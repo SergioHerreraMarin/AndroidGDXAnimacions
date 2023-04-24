@@ -3,6 +3,7 @@ package com.animacionsgdx.game;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.animacionsgdx.game.Game;
+import com.github.czyzby.websocket.CommonWebSockets;
 
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
@@ -12,6 +13,7 @@ public class DesktopLauncher {
 		config.setTitle("AnimacionsGDX");
 		config.setWindowedMode(800,480);
 		config.useVsync(true);
+		CommonWebSockets.initiate();
 		new Lwjgl3Application(new Game(), config);
 	}
 }
